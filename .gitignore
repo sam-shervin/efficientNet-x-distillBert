@@ -1,0 +1,8 @@
+kaggle_cache/*
+precache/*
+test
+test*.py
+Test*.py
+
+modules.*
+
