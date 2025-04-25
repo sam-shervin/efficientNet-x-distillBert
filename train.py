@@ -20,12 +20,8 @@ def validate(model, loader, tokenizer, device):
     
     with torch.no_grad():
         for imgs, caps in tqdm(loader, desc="Validating", leave=False):
-            if flag:
-                # display first image
-                plt.imshow(imgs[0])
-                print(caps[0])
-                plt.show()
-                flag = False
+            
+                
 
             # Process images
             imgs = imgs.to(device)
@@ -144,13 +140,13 @@ def main():
         epoch_metrics = ckpt['epoch_metrics']
         epoch_losses = ckpt['epoch_losses']
 
-        print(f"🔄 Loaded checkpoint {latest_ckpt}, resuming from epoch {start_epoch}")
+        print(f"Loaded checkpoint {latest_ckpt}, resuming from epoch {start_epoch}")
     else:
         start_epoch = 1
         epoch_metrics = []
         epoch_indices = []
         epoch_losses = []
-        print("⏺ No checkpoint found, starting from scratch")
+        print("No checkpoint found, starting from scratch")
 
     print("Optimizer created.")
     print("Training...")
@@ -164,7 +160,7 @@ def main():
         model.train()
         epoch_loss = 0.0
         num_batches = 0
-        for _, (images, caps) in enumerate(
+        for idx, (images, caps) in enumerate(
                 tqdm(train_loader, desc=f"Epoch {epoch}", unit="batch"),
                 start=1
             ):
@@ -183,8 +179,8 @@ def main():
             scaler.scale(loss).backward()
             scaler.step(opt)
             scaler.update()
-
-            tqdm.write(f'Batch Loss: {loss.item():.4f}')
+            if idx % 50 == 0:
+                tqdm.write(f'Batch Loss: {loss.item():.4f}')
             epoch_loss += loss.item()
             num_batches += 1
 
@@ -194,9 +190,7 @@ def main():
         epoch_indices.append(epoch)
         # compute & store avg train loss
         avg_loss = epoch_loss / num_batches if num_batches>0 else 0.0
-    
         epoch_losses.append(avg_loss)
-    
         # one unified plot: loss + all retrieval metrics
         ys = {'loss': epoch_losses}
         ys.update({k: [em[k] for em in epoch_metrics] for k in m})
@@ -216,9 +210,9 @@ def main():
         'epoch_indices': epoch_indices,
         'epoch_metrics': epoch_metrics,
         'epoch_losses': epoch_losses,
-    }
-    torch.save(ckpt, f'checkpoint_epoch{epoch}.pt')
-    print(f'>> Epoch {epoch} done, checkpoint saved.')
+        }
+        torch.save(ckpt, f'checkpoint_epoch{epoch}.pt')
+        print(f'>> Epoch {epoch} done, checkpoint saved.')
 
     print("Training complete.")
 

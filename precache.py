@@ -10,7 +10,14 @@ from tqdm import tqdm
 
 def precache():
     os.environ['KAGGLEHUB_CACHE'] = './kaggle_cache'
-    cfg = Config()
+    class cfg:
+        kaggle_dataset = 'romainbeaumont/laion400m'
+        num_parquet_files = 1
+        max_samples = 100_000
+        image_size = (512, 512)
+        num_workers = 16
+        prefetch_factor = 32
+
 
     # download parquet files
     parquet_dir = kagglehub.dataset_download(cfg.kaggle_dataset)
@@ -29,9 +36,8 @@ def precache():
     total_batches = math.ceil(len(ds) / 32)
     loader = DataLoader(
         ds,
-        batch_size=32,
+        batch_size=cfg.batch_size,
         num_workers=cfg.num_workers,
-        pin_memory=False,
         prefetch_factor=cfg.prefetch_factor
     )
 
